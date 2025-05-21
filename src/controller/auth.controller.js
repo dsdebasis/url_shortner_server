@@ -129,27 +129,64 @@ export const register_verifedUser = asyncHandler(async (req, res) => {
       .status(200)
       .cookie("auth_token", token, {
         httpOnly: true,
-        maxAge: 1000 * 60 * 10,
+        maxAge: 1000 * 60 * 60 *24 * 7,
         sameSite: "none",
         path: "/",
       })
       .json({  message: "Registration Succesfull", data: newUser });
   } catch (error) {
     console.error("error while creating user",error);
-    throw new Error(error.message,500);
+    return res.status(500).json({success: false, message: error.message,
+      error: error
+     });
   }
 });
 
-export const login_user = wrapAsync(async (req, res) => {
+export const login_user = asyncHandler(async (req, res) => {
+
+  if(req?.cookies?.auth_token){
+    return res.status(400).
+    cookie("auth_token",req.cookies.auth_token,{
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    }).
+    json({ message: "Already logged in" });
+  }
   const { email, password } = req.body;
+   
+   const loginSchema = joi.object({
+        email: joi.string().email().required().min(6).max(32),
+        password: joi.string().required().max(32).min(4),
+    });
+
+    let validation = loginSchema.validate({ email, password });
+    if (validation.error) {
+        return res.status(400).json({
+            success: false,
+            message: validation.error.details[0].message,
+        })
+      
+    }
   const { token, user } = await loginUser(email, password);
   req.user = user;
-  res.cookie("accessToken", token, cookieOptions);
-  res.status(200).json({ user: user, message: "login success" });
+  res.cookie("auth_token", token, {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    sameSite: "none",
+    path: "/",
+  });
+  res.status(200).json({  message: "login success",user: user, });
 });
 
 export const logout_user = wrapAsync(async (req, res) => {
-  res.clearCookie("accessToken", cookieOptions);
+  if(!req?.cookies?.auth_token){
+    return res.status(400).json({ message: "Already logged out" });
+  }
+  res.clearCookie("auth_token", {
+    httpOnly: true,
+    maxAge: Date.now(),
+    sameSite: "none",
+    path: "/",
+  });
   res.status(200).json({ message: "logout success" });
 });
 
