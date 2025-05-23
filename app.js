@@ -12,7 +12,7 @@ import { errorHandler } from "./src/utils/errorHandler.js";
 import cors from "cors"
 // import { attachUser } from "./src/utils/attachUser.js";
 import cookieParser from "cookie-parser"
-
+import { limiter } from "./src/utils/rate_limiter.js";
 const app = express();
 
 app.use(cors({
@@ -26,12 +26,14 @@ app.use(cookieParser())
 
 // app.use(attachUser)
 
+app.use(errorHandler)
+app.use(limiter)
+
 app.use("/api/user",user_routes)
 app.use("/api/auth",auth_routes)
 app.use("/api/create",short_url)
 app.get("/:id",redirectFromShortUrl)
-
-app.use(errorHandler)
+ 
 
 const PORT = process.env.PORT || 7002 ;
 app.listen(PORT,()=>{
