@@ -36,7 +36,7 @@ app.use(errorHandler)
 const PORT = process.env.PORT || 7002 ;
 app.listen(PORT,()=>{
     connectDB();
-    console.log("tesgt",process.env.NODE_ENV)
+  
     console.log("Server is running on http://localhost:"+PORT);
 })
 

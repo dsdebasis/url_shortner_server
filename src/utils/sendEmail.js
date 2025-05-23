@@ -10,18 +10,19 @@ const emailSchema = joi.object({
 
 //PROVIE API KEY IN ENV FILE (RESEND_API_KEY)
 const resend = new Resend(process.env.RESEND_API_KEY);
-
+const MAIL_SERVER_ID = process.env.MAIL_SERVER_ID
+console.log(MAIL_SERVER_ID)
 async function  sendEmail(emailData){
    
     const validate = emailSchema.validate(emailData)
     if (validate.error) {
         console.error("error while sending user register_email",validate.error)
         throw new Error(validate.error.details[0].message)
-    }
+    } 
     
     try {
         const {data,error} = await resend.emails.send({
-            from: 'dsdebasis@dsdebasis.in',
+            from: process.env.MAIL_SERVER_ID,
             to: [emailData?.to],
             subject: emailData?.subject, 
             html: emailData?.html,
